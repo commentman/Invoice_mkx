@@ -1,12 +1,15 @@
 import { X, Plus, Trash2 } from "lucide-react";
 import React, { useState } from "react";
-import { toggleForm } from "../store/InvoiceSlice";
+import { addInvoice, toggleForm } from "../store/InvoiceSlice";
 import { useDispatch } from "react-redux";
 import { format, addDays } from "date-fns";
 
+// InvoiceForm เป็นฟอร์มสำหรับสร้าง invoice ใหม่
 const InvoiceForm = () => {
+  // ใช้ useDispatch เพื่อเรียก action ไปยัง Redux store
   const dispatch = useDispatch();
 
+  // สร้าง state สำหรับเก็บข้อมูลฟอร์ม โดยใช้ useState
   const [formData, setFormData] = useState(() => {
     return {
       id: `INV${Math.floor(Math.random() * 10000)}`,
@@ -29,6 +32,13 @@ const InvoiceForm = () => {
     };
   });
 
+  // เมื่อ submit ฟอร์ม จะ dispatch action เพื่อเพิ่ม invoice ใหม่
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    dispatch(addInvoice(formData));
+  }
+
+  // เพิ่ม item ใหม่ในรายการสินค้า
   const addItem = () => {
     setFormData({
       ...formData,
@@ -36,10 +46,12 @@ const InvoiceForm = () => {
     });
   };
 
+  // อัปเดตข้อมูลของแต่ละ item
   const updateItem = (index, field, value) => {
     const newItems = [...formData.items];
     newItems[index][field] = value;
 
+    // คำนวณ total ของแต่ละ item
     if (field === "qty" || field === "price") {
       const qty = field === "qty" ? value : newItems[index].qty;
       const price = field === "price" ? value : newItems[index].price;
@@ -48,17 +60,29 @@ const InvoiceForm = () => {
     setFormData({ ...formData, items: newItems });
   };
 
+  // ลบ item ออกจากรายการ
+  const removeItem = (index) => {
+    setFormData({
+      ...formData,
+      items: formData.items.filter((_, i) => i !== index),
+    })
+  }
+
   return (
+    // กล่องฟอร์มแบบ modal
     <div className="fixed inset-0 bg-black/50 flex items-start justify-center overflow-y-auto">
       <div className="bg-slate-800 p-8 rounded-lg w-full max-w-2xl mt-8 nb-8">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold">Add</h2>
+          {/* ปุ่มปิดฟอร์ม */}
           <button type="button" onClick={() => dispatch(toggleForm())}>
             <X size={24} />
           </button>
         </div>
 
-        <form className="space-y-6">
+        {/* ฟอร์มกรอกข้อมูล invoice */}
+        <form className="space-y-6" onSubmit={handleSubmit}>
+          {/* ส่วนกรอกข้อมูลผู้ส่งบิล */}
           <div className="space-y-4">
             <h3 className="text-violet-500 font-bold">Bill Table</h3>
             <input
@@ -79,6 +103,7 @@ const InvoiceForm = () => {
             />
           </div>
 
+          {/* กรอกข้อมูลเมือง รหัสไปรษณีย์ ประเทศ */}
           <div className="grid grid-cols-3 gap-4">
             <input
               type="text"
@@ -127,6 +152,7 @@ const InvoiceForm = () => {
             />
           </div>
 
+          {/* ส่วนกรอกข้อมูลผู้รับบิล */}
           <div className="space-y-4">
             <h3 className="text-violet-500 font-bold">Bill to</h3>
             <input
@@ -173,6 +199,7 @@ const InvoiceForm = () => {
             />
           </div>
 
+          {/* กรอกข้อมูลเมือง รหัสไปรษณีย์ ประเทศ ของผู้รับบิล */}
           <div className="grid grid-cols-3 gap-4">
             <input
               type="text"
@@ -221,6 +248,7 @@ const InvoiceForm = () => {
             />
           </div>
 
+          {/* กรอกวันที่และเงื่อนไขการชำระเงิน */}
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <input
@@ -266,6 +294,7 @@ const InvoiceForm = () => {
             />
           </div>
 
+          {/* รายการสินค้า/บริการ */}
           <div className="space-y-4">
             <h3>Item list</h3>
             {formData.items.map((item, index) => (
@@ -296,15 +325,19 @@ const InvoiceForm = () => {
                   value={item.price}
                   onChange={(e) => updateItem(index, "price", parseFloat(e.target.value) || 0)}
                 />
+                {/* แสดงราคารวมของแต่ละรายการ */}
                 <div className="col-span-2 text-right">${item.total.toFixed(2)}</div>
+                {/* ปุ่มลบรายการ */}
                 <button
                   type="button"
                   className="text-slate-400 hover:text-red-500"
+                  onClick={() => removeItem(index)}
                 >
                   <Trash2 size={20} />
                 </button>
               </div>
             ))}
+            {/* ปุ่มเพิ่มรายการสินค้า */}
             <button
               type="button"
               className="w-full bg-slate-700 hover:bg-slate-600 rounded-lg p-3 flex items-center justify-center space-x-2"
@@ -315,6 +348,7 @@ const InvoiceForm = () => {
             </button>
           </div>
 
+          {/* ปุ่มยกเลิกและสร้าง invoice */}
           <div className="flex justify-end space-x-4">
             <button
               type="button"
@@ -323,7 +357,7 @@ const InvoiceForm = () => {
               Cancel
             </button>
             <button
-              type="button"
+              type="submit"
               className="bg-violet-500 hover:bg-violet-600 rounded-full px-6 py-3 text-white"
             >
               Create Ivoice
