@@ -1,16 +1,20 @@
 import { X, Plus, Trash2 } from "lucide-react";
-import React, { useState } from "react";
-import { addInvoice, toggleForm } from "../store/InvoiceSlice";
+import React, { useEffect, useState } from "react";
+import { addInvoice, toggleForm, updateInvoice } from "../store/InvoiceSlice";
 import { useDispatch } from "react-redux";
 import { format, addDays } from "date-fns";
 
 // InvoiceForm เป็นฟอร์มสำหรับสร้าง invoice ใหม่
-const InvoiceForm = () => {
+const InvoiceForm = ({ invoice }) => {
   // ใช้ useDispatch เพื่อเรียก action ไปยัง Redux store
   const dispatch = useDispatch();
 
   // สร้าง state สำหรับเก็บข้อมูลฟอร์ม โดยใช้ useState
   const [formData, setFormData] = useState(() => {
+    if (invoice) {
+      return { ...invoice };
+    }
+
     return {
       id: `INV${Math.floor(Math.random() * 10000)}`,
       status: "pending",
@@ -32,10 +36,20 @@ const InvoiceForm = () => {
     };
   });
 
+  useEffect(() => {
+    if (invoice) {
+      setFormData(invoice);
+    }
+  }, [invoice]);
+
   // เมื่อ submit ฟอร์ม จะ dispatch action เพื่อเพิ่ม invoice ใหม่
   const handleSubmit = (e) => {
     e.preventDefault();
-    dispatch(addInvoice(formData));
+    if (invoice) {
+      dispatch(updateInvoice(formData));
+    } else {
+      dispatch(addInvoice(formData));
+    }
   }
 
   // เพิ่ม item ใหม่ในรายการสินค้า
@@ -360,7 +374,7 @@ const InvoiceForm = () => {
               type="submit"
               className="bg-violet-500 hover:bg-violet-600 rounded-full px-6 py-3 text-white"
             >
-              Create Ivoice
+              {invoice ? "Save Changes" : "Create Invoice"}
             </button>
           </div>
         </form>

@@ -1,13 +1,22 @@
 import { format, parseISO } from 'date-fns'
 import React from 'react'
 import { useDispatch } from 'react-redux';
-import { markAsPaid } from '../store/InvoiceSlice';
+import { deleteInvoice, markAsPaid, setSelectedInvoice, toggleForm } from '../store/InvoiceSlice';
 
 function InvoiceDetails({ invoice }) {
     const dispatch = useDispatch();
 
     const handleMarkAsPaid = () => {
         dispatch(markAsPaid(invoice.id));
+    }
+
+    const handleEdit = () => {
+        dispatch(toggleForm());
+    }
+
+    const handleDelete = () => {
+        dispatch(deleteInvoice(invoice.id));
+        dispatch(setSelectedInvoice(null));
     }
 
     const formatDate = (dateString) => {
@@ -37,10 +46,14 @@ function InvoiceDetails({ invoice }) {
                     </div>
                 </div>
                 <div className='flex space-x-4'>
-                    <button className='px-6 py-3 rounded-full bg-slate-700 hover:bg-slate-600'>
+                    <button className='px-6 py-3 rounded-full bg-slate-700 hover:bg-slate-600'
+                        onClick={handleEdit}
+                    >
                         Edit
                     </button>
-                    <button className='px-6 py-3 rounded-full bg-red-500 hover:bg-red-600'>
+                    <button className='px-6 py-3 rounded-full bg-red-500 hover:bg-red-600'
+                        onClick={handleDelete}
+                    >
                         Delete
                     </button>
                     <button className='px-6 py-3 rounded-full bg-violet-500 hover:bg-violet-600'

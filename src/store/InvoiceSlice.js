@@ -90,6 +90,29 @@ const invoiceSlice = createSlice({
         saveState(state);
       }
     },
+
+    deleteInvoice: (state, action) => {
+      state.invoices = state.invoices.filter((inv) => inv.id !== action.payload)
+      state.selectedInvoice = null;
+      saveState(state);
+    },
+
+    updateInvoice: (state, action) => {
+      const updateInvoice = {
+        ...action.payload,
+        amount: calculateAmount(action.payload.items),
+      };
+
+      const index = state.invoices.findIndex(
+        (inv) => inv.id === updateInvoice.id
+      );
+      if (index !== -1) {
+        state.invoices[index] = updateInvoice;
+      }
+      state.selectedInvoice = null;
+      state.isFormOpen = false;
+      saveState(state);
+    }
   },
 });
 
@@ -100,6 +123,8 @@ export const {
   setFilter,
   setSelectedInvoice,
   markAsPaid,
+  deleteInvoice,
+  updateInvoice,
 } = invoiceSlice.actions;
 
 // export reducer สำหรับใช้ใน store
